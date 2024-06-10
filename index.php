@@ -87,7 +87,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <?php endforeach; ?>
     </div>
 </div>
-
 <footer>
     <p>© 2024 QuizNight. Tous droits réservés.</p>
 </footer>
