@@ -27,7 +27,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $quizzes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -83,6 +82,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <?php if (isset($quiz['image'])): ?>
                     <img src="<?php echo htmlspecialchars($quiz['image']); ?>" alt="Quiz Image">
                 <?php endif; ?>
+                <div class="card-bottom">
+                    <span class="plus">+</span>
+                </div>
             </div>
         <?php endforeach; ?>
     </div>
