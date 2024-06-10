@@ -70,6 +70,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </form>
 </header>
 
+<body>
+<h1>On en apprend tous les jours grâce à QuipoQuiz!</h1>
+
 <div class="container">
 
     <div class="card-container">
