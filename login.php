@@ -17,6 +17,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Vérifiez le mot de passe
         if (password_verify($password, $user['password'])) {
             $_SESSION['user_id'] = $user['id'];
+            $_SESSION['username'] = $user['username']; // Ajoutez cette ligne pour stocker le nom d'utilisateur
             header("Location: quizzes.php");
             exit();
         } else {
