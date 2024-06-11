@@ -1,7 +1,7 @@
 <?php
 include 'config.php';
 
-// Récupérer la liste des quiz existants avec leurs questions et réponses
+// Récupérer la liste des quiz existants 
 $stmt = $conn->prepare("SELECT quizzes.id AS quiz_id, quizzes.title AS quiz_title, questions.id AS question_id, questions.question_text, answers.id AS answer_id, answers.answer_text, answers.is_correct FROM quizzes JOIN questions ON quizzes.id = questions.quiz_id JOIN answers ON questions.id = answers.question_id");
 $stmt->execute();
 $quiz_questions_answers = $stmt->fetchAll(PDO::FETCH_ASSOC);

@@ -127,7 +127,7 @@ if ($selected_quiz_id) {
             <option value="4">Réponse 4</option>
         </select><br>
         
-        <input type="submit" value="Add Question">
+        <input type="submit" value="Ajout de question">
     </form>
 
     <h2>Questions et Reponses sur le thème  <?php echo htmlspecialchars($quizzes[array_search($selected_quiz_id, array_column($quizzes, 'id'))]['title']); ?></h2>
