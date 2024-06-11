@@ -90,7 +90,7 @@ if ($selected_quiz_id) {
 <form method="post">
     <input type="hidden" name="form_type" value="add_quiz">
     Title: <input type="text" name="title" required><br>
-    <input type="submit" value="Add Quiz">
+    <input type="submit" value="Ajouter un thème de Quiz">
 </form>
 
 <ul>
@@ -130,7 +130,7 @@ if ($selected_quiz_id) {
         <input type="submit" value="Add Question">
     </form>
 
-    <h2>Questions and Answers for <?php echo htmlspecialchars($quizzes[array_search($selected_quiz_id, array_column($quizzes, 'id'))]['title']); ?></h2>
+    <h2>Questions et Reponses sur le thème  <?php echo htmlspecialchars($quizzes[array_search($selected_quiz_id, array_column($quizzes, 'id'))]['title']); ?></h2>
     <ul>
         <?php foreach ($questions as $question): ?>
             <li>
