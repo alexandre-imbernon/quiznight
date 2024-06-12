@@ -1,19 +1,12 @@
 <?php
-include 'config.php';
+require_once('./classes/User.php');
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $_POST['username'];
     $password = password_hash($_POST['password'], PASSWORD_BCRYPT); // Hacher le mot de passe
 
-    $stmt = $conn->prepare("INSERT INTO users (username, password) VALUES (:username, :password)");
-    $stmt->bindParam(':username', $username);
-    $stmt->bindParam(':password', $password);
-    
-    if ($stmt->execute()) {
-        echo "Registration successful!";
-    } else {
-        echo "Error: " . $stmt->errorInfo()[2];
-    }
+    $user = new User();
+    $user -> register($username, $password);
 }
 ?>
 

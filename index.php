@@ -1,14 +1,11 @@
 <?php
-include 'config.php';
+require_once('./classes/Quiz.php');
 
-// Récupérer la liste des quiz existants 
-$stmt = $conn->prepare("SELECT quizzes.id AS quiz_id, quizzes.title AS quiz_title, questions.id AS question_id, questions.question_text, answers.id AS answer_id, answers.answer_text, answers.is_correct FROM quizzes JOIN questions ON quizzes.id = questions.quiz_id JOIN answers ON questions.id = answers.question_id");
-$stmt->execute();
-$quiz_questions_answers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$quiz = new Quiz();
+$quiz_questions_answers = $quiz -> read();
 
 // Organiser les données par quiz
 $quizzes_data = [];
-
 foreach ($quiz_questions_answers as $qa) {
     $quizzes_data[$qa['quiz_id']]['title'] = $qa['quiz_title'];
     $quizzes_data[$qa['quiz_id']]['questions'][$qa['question_id']]['question_text'] = $qa['question_text'];
@@ -25,9 +22,27 @@ foreach ($quiz_questions_answers as $qa) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Index</title>
+    <style>
+        .login-button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            background-color: #007BFF;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .login-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
     <h1>Quiz Index</h1>
+
+    <a href="login.php" class="login-button">Login</a> <!-- Bouton pour accéder à la page de connexion -->
+
     <ul>
         <?php foreach ($quizzes_data as $quiz_id => $quiz): ?>
             <li>
