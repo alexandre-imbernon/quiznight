@@ -118,7 +118,7 @@ foreach ($quiz_questions_answers as $qa) {
         .quiz button {
             background-color: #19aeff;
             color: black;
-            border: 2px solid #fff;
+            border: 2px solid #19aeff;
             border-radius: 20px;
             padding: 10px 20px;
             font-size: 16px;
@@ -222,6 +222,14 @@ foreach ($quiz_questions_answers as $qa) {
             display: block;
             width: auto;
             margin-bottom: 5px;
+        }
+
+        .separator {
+            border: 0;
+            border-top: 1px solid #fff; /* Couleur blanche */
+            margin: 10px auto; /* Espacement vertical autour de la barre et centrage horizontal */
+            width: 80%; /* Largeur de la barre */
+            opacity: 0.5; /* Opacité pour rendre la barre un peu transparente */
         }
 
         .correct-answer {
@@ -393,6 +401,7 @@ foreach ($quiz_questions_answers as $qa) {
                                     <?php endforeach; ?>
                                 </ul>
                             </li>
+                            <hr class="separator"> <!-- Ajouter cette ligne -->
                         <?php endforeach; ?>
                     </ul>
                     <button onclick="showCorrectAnswers(<?php echo htmlspecialchars($quiz_id); ?>)">Afficher les bonnes réponses</button>

@@ -735,7 +735,7 @@ if ($selected_quiz_id) {
                         <form method="post" style="display: inline;">
                             <input type="hidden" name="form_type" value="delete_quiz">
                             <input type="hidden" name="quiz_id" value="<?php echo $quiz['id']; ?>">
-                            <input type="submit" value="Supprimer" class="delete-button">
+                            <input type="submit" value="Supprimer le quizz" class="delete-button">
                         </form>
                         <form method="post" style="display: inline;">
                             <input type="hidden" name="form_type" value="edit_quiz">
