@@ -10,6 +10,15 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 $username = isset($_SESSION['username']) ? $_SESSION['username'] : 'Utilisateur'; // Valeur par défaut si la clé n'est pas définie
 
+// Fonction pour vérifier si l'utilisateur est propriétaire du quiz
+function is_owner($quiz_id, $user_id, $conn) {
+    $stmt = $conn->prepare("SELECT * FROM quizzes WHERE id = :quiz_id AND user_id = :user_id");
+    $stmt->bindParam(':quiz_id', $quiz_id);
+    $stmt->bindParam(':user_id', $user_id);
+    $stmt->execute();
+    return $stmt->rowCount() > 0;
+}
+
 // Traitement du formulaire pour ajouter un quiz
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['form_type']) && $_POST['form_type'] == 'add_quiz') {
     $title = $_POST['title'];
@@ -32,15 +41,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['form_type']) && $_POST
     $quiz_id = $_POST['quiz_id'];
     $cover_image = $_POST['cover_image'];
 
-    try {
-        $stmt = $conn->prepare("UPDATE quizzes SET cover_image = :cover_image WHERE id = :quiz_id AND user_id = :user_id");
-        $stmt->bindParam(':cover_image', $cover_image);
-        $stmt->bindParam(':quiz_id', $quiz_id);
-        $stmt->bindParam(':user_id', $user_id);
-        $stmt->execute();
-        echo "Image de couverture mise à jour avec succès !";
-    } catch (Exception $e) {
-        echo "Une erreur s'est produite lors de la mise à jour de l'image de couverture : " . $e->getMessage();
+    if (is_owner($quiz_id, $user_id, $conn)) {
+        try {
+            $stmt = $conn->prepare("UPDATE quizzes SET cover_image = :cover_image WHERE id = :quiz_id AND user_id = :user_id");
+            $stmt->bindParam(':cover_image', $cover_image);
+            $stmt->bindParam(':quiz_id', $quiz_id);
+            $stmt->bindParam(':user_id', $user_id);
+            $stmt->execute();
+            echo "Image de couverture mise à jour avec succès !";
+        } catch (Exception $e) {
+            echo "Une erreur s'est produite lors de la mise à jour de l'image de couverture : " . $e->getMessage();
+        }
+    } else {
+        echo "Vous n'êtes pas autorisé à modifier ce quiz.";
     }
 }
 
@@ -51,33 +64,143 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['form_type']) && $_POST
     $answers = $_POST['answers']; // Tableau des réponses
     $correct_answer_index = $_POST['correct_answer']; // Index de la réponse correcte dans le tableau des réponses
 
-    try {
-        $conn->beginTransaction();
+    if (is_owner($quiz_id, $user_id, $conn)) {
+        try {
+            $conn->beginTransaction();
 
-        // Insérer la question dans la table 'questions'
-        $stmt = $conn->prepare("INSERT INTO questions (quiz_id, user_id, question_text) VALUES (:quiz_id, :user_id, :question_text)");
-        $stmt->bindParam(':quiz_id', $quiz_id);
-        $stmt->bindParam(':user_id', $user_id);
-        $stmt->bindParam(':question_text', $question_text);
-        $stmt->execute();
-        $question_id = $conn->lastInsertId();
-
-        // Insérer les réponses dans la table 'answers'
-        $stmt = $conn->prepare("INSERT INTO answers (question_id, answer_text, is_correct) VALUES (:question_id, :answer_text, :is_correct)");
-
-        foreach ($answers as $index => $answer) {
-            $is_correct = ($index == $correct_answer_index - 1) ? 1 : 0; // Vérifie si l'index de la réponse correspond à la réponse correcte
-            $stmt->bindParam(':question_id', $question_id);
-            $stmt->bindParam(':answer_text', $answer);
-            $stmt->bindParam(':is_correct', $is_correct);
+            // Insérer la question dans la table 'questions'
+            $stmt = $conn->prepare("INSERT INTO questions (quiz_id, user_id, question_text) VALUES (:quiz_id, :user_id, :question_text)");
+            $stmt->bindParam(':quiz_id', $quiz_id);
+            $stmt->bindParam(':user_id', $user_id);
+            $stmt->bindParam(':question_text', $question_text);
             $stmt->execute();
-        }
+            $question_id = $conn->lastInsertId();
 
-        $conn->commit();
-        echo "Question ajoutée avec succès !";
-    } catch (Exception $e) {
-        $conn->rollback();
-        echo "Une erreur s'est produite lors de l'ajout de la question : " . $e->getMessage();
+            // Insérer les réponses dans la table 'answers'
+            $stmt = $conn->prepare("INSERT INTO answers (question_id, answer_text, is_correct) VALUES (:question_id, :answer_text, :is_correct)");
+
+            foreach ($answers as $index => $answer) {
+                $is_correct = ($index == $correct_answer_index - 1) ? 1 : 0; // Vérifie si l'index de la réponse correspond à la réponse correcte
+                $stmt->bindParam(':question_id', $question_id);
+                $stmt->bindParam(':answer_text', $answer);
+                $stmt->bindParam(':is_correct', $is_correct);
+                $stmt->execute();
+            }
+
+            $conn->commit();
+            echo "Question ajoutée avec succès !";
+        } catch (Exception $e) {
+            $conn->rollback();
+            echo "Une erreur s'est produite lors de l'ajout de la question : " . $e->getMessage();
+        }
+    } else {
+        echo "Vous n'êtes pas autorisé à ajouter des questions à ce quiz.";
+    }
+}
+
+// Traitement du formulaire pour supprimer un quiz
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['form_type']) && $_POST['form_type'] == 'delete_quiz') {
+    $quiz_id = $_POST['quiz_id'];
+
+    if (is_owner($quiz_id, $user_id, $conn)) {
+        try {
+            $conn->beginTransaction();
+
+            // Supprimer les réponses associées
+            $stmt = $conn->prepare("DELETE FROM answers WHERE question_id IN (SELECT id FROM questions WHERE quiz_id = :quiz_id)");
+            $stmt->bindParam(':quiz_id', $quiz_id);
+            $stmt->execute();
+
+            // Supprimer les questions associées
+            $stmt = $conn->prepare("DELETE FROM questions WHERE quiz_id = :quiz_id");
+            $stmt->bindParam(':quiz_id', $quiz_id);
+            $stmt->execute();
+
+            // Supprimer le quiz
+            $stmt = $conn->prepare("DELETE FROM quizzes WHERE id = :quiz_id AND user_id = :user_id");
+            $stmt->bindParam(':quiz_id', $quiz_id);
+            $stmt->bindParam(':user_id', $user_id);
+            $stmt->execute();
+
+            $conn->commit();
+            echo "Quiz supprimé avec succès !";
+        } catch (Exception $e) {
+            $conn->rollback();
+            echo "Une erreur s'est produite lors de la suppression du quiz : " . $e->getMessage();
+        }
+    } else {
+        echo "Vous n'êtes pas autorisé à supprimer ce quiz.";
+    }
+}
+
+// Traitement du formulaire pour modifier un quiz
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['form_type']) && $_POST['form_type'] == 'edit_quiz') {
+    $quiz_id = $_POST['quiz_id'];
+    $title = $_POST['title'];
+    $cover_image = $_POST['cover_image'];
+
+    if (is_owner($quiz_id, $user_id, $conn)) {
+        try {
+            $stmt = $conn->prepare("UPDATE quizzes SET title = :title, cover_image = :cover_image WHERE id = :quiz_id AND user_id = :user_id");
+            $stmt->bindParam(':title', $title);
+            $stmt->bindParam(':cover_image', $cover_image);
+            $stmt->bindParam(':quiz_id', $quiz_id);
+            $stmt->bindParam(':user_id', $user_id);
+            $stmt->execute();
+            echo "Quiz mis à jour avec succès !";
+        } catch (Exception $e) {
+            echo "Une erreur s'est produite lors de la mise à jour du quiz : " . $e->getMessage();
+        }
+    } else {
+        echo "Vous n'êtes pas autorisé à modifier ce quiz.";
+    }
+}
+
+// Traitement du formulaire pour modifier une question et ses réponses
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['form_type']) && $_POST['form_type'] == 'edit_question') {
+    $question_id = $_POST['question_id'];
+    $question_text = $_POST['question_text'];
+    $answers = $_POST['answers'];
+    $correct_answer_index = $_POST['correct_answer'];
+
+    // Vérifier si l'utilisateur est propriétaire de la question
+    $stmt = $conn->prepare("SELECT quiz_id FROM questions WHERE id = :question_id AND user_id = :user_id");
+    $stmt->bindParam(':question_id', $question_id);
+    $stmt->bindParam(':user_id', $user_id);
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    $quiz_id = $result['quiz_id'] ?? null;
+
+    if ($quiz_id && is_owner($quiz_id, $user_id, $conn)) {
+        try {
+            $conn->beginTransaction();
+
+            // Mettre à jour la question
+            $stmt = $conn->prepare("UPDATE questions SET question_text = :question_text WHERE id = :question_id AND user_id = :user_id");
+            $stmt->bindParam(':question_text', $question_text);
+            $stmt->bindParam(':question_id', $question_id);
+            $stmt->bindParam(':user_id', $user_id);
+            $stmt->execute();
+
+            // Mettre à jour les réponses
+            $stmt = $conn->prepare("UPDATE answers SET answer_text = :answer_text, is_correct = :is_correct WHERE id = :answer_id");
+
+            foreach ($answers as $index => $answer) {
+                $is_correct = ($index == $correct_answer_index - 1) ? 1 : 0;
+                $stmt->bindParam(':answer_text', $answer['text']);
+                $stmt->bindParam(':is_correct', $is_correct);
+                $stmt->bindParam(':answer_id', $answer['id']);
+                $stmt->execute();
+            }
+
+            $conn->commit();
+            echo "Question et réponses mises à jour avec succès !";
+        } catch (Exception $e) {
+            $conn->rollback();
+            echo "Une erreur s'est produite lors de la mise à jour de la question : " . $e->getMessage();
+        }
+    } else {
+        echo "Vous n'êtes pas autorisé à modifier cette question.";
     }
 }
 
@@ -191,7 +314,8 @@ if ($selected_quiz_id) {
         }
 
         h2{
-            font-size: 2rem;
+            font-size: 2.5rem;
+            color: rgba(0, 0, 0, 0.7);
         }
 
         .buttons button {
@@ -279,10 +403,32 @@ if ($selected_quiz_id) {
             width: 90%;
             max-width: 1200px;
             margin: 20px auto;
+            margin-bottom: 200px;
             background: rgba(0, 0, 0, 0.7);
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+            border: 2px solid #00FF00;
+            animation: neon-border-green 1.5s infinite alternate;
+        }
+
+        @keyframes neon-border-green {
+            0% {
+                box-shadow: 0 0 10px #00FF00, 0 0 20px #00FF00, 0 0 30px #00FF00, 0 0 40px #00FF00;
+            }
+            25% {
+                box-shadow: 0 0 20px #00FF00, 0 0 30px #00FF00, 0 0 40px #00FF00, 0 0 50px #00FF00;
+            }
+            50% {
+                box-shadow: 0 0 10px #00FF00, 0 0 20px #00FF00, 0 0 30px #00FF00, 0 0 40px #00FF00;
+            }
+            75% {
+                box-shadow: 0 0 20px #00FF00, 0 0 30px #00FF00, 0 0 40px #00FF00, 0 0 50px #00FF00;
+            }
+            100% {
+                box-shadow: 0 0 30px #00FF00, 0 0 40px #00FF00, 0 0 50px #00FF00, 0 0 60px #00FF00;
+            }
         }
 
         .column {
@@ -402,6 +548,86 @@ if ($selected_quiz_id) {
             box-shadow: 0 0 20px #00FFFF, 0 0 40px #00FFFF, 0 0 60px #00FFFF, 0 0 80px #00FFFF; /* Ombres cyan pour l'effet néon */
         }
 
+        .delete-button {
+            background-color: #ff0000; /* Rouge */
+            color: white;
+            border: 2px solid #ff0000;
+            border-radius: 20px; 
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 0;
+            font-family: 'Neon', sans-serif;
+        }
+
+        .delete-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 0, 0, 0.2);
+            filter: blur(10px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .delete-button:hover::before {
+            opacity: 1;
+        }
+
+        .delete-button:hover {
+            color: #000;
+            background-color: #ff4444; /* Rouge clair */
+            box-shadow: 0 0 20px #ff4444, 0 0 40px #ff4444, 0 0 60px #ff4444, 0 0 80px #ff4444;
+            border-color: #ff4444;
+        }
+
+        form input[type="submit"].edit-button {
+            background-color: #00FF00; /* Vert */
+            color: black;
+            border: 2px solid #00FF00;
+            border-radius: 20px; 
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 0;
+            font-family: 'Neon', sans-serif;
+        }
+
+        form input[type="submit"].edit-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 255, 0, 0.2);
+            filter: blur(10px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        form input[type="submit"].edit-button:hover::before {
+            opacity: 1;
+        }
+
+        form input[type="submit"].edit-button:hover {
+            color: #000;
+            background-color: #00FF00; /* Vert clair */
+            box-shadow: 0 0 20px #00FF00, 0 0 40px #00FF00, 0 0 60px #00FF00, 0 0 80px #00FF00;
+            border-color: #00FF00;
+        }
+
         .questions-answers ul {
             list-style: none;
             padding: 0;
@@ -440,6 +666,11 @@ if ($selected_quiz_id) {
         }
 
     </style>
+    <script>
+        function redirectTo(url) {
+            window.location.href = url;
+        }
+    </script>
 </head>
 <body>
 
@@ -498,8 +729,22 @@ if ($selected_quiz_id) {
                             <input type="hidden" name="form_type" value="update_cover_image">
                             <input type="hidden" name="quiz_id" value="<?php echo $quiz['id']; ?>">
                             <label for="cover_image_<?php echo $quiz['id']; ?>">Image de couverture (URL):</label>
-                            <input type="text" id="cover_image_<?php echo $quiz['id']; ?>" name="cover_image"><!-- Champ vide par défaut -->
+                            <input type="text" id="cover_image_<?php echo $quiz['id']; ?>" name="cover_image">
                             <input type="submit" value="Mettre à jour">
+                        </form>
+                        <form method="post" style="display: inline;">
+                            <input type="hidden" name="form_type" value="delete_quiz">
+                            <input type="hidden" name="quiz_id" value="<?php echo $quiz['id']; ?>">
+                            <input type="submit" value="Supprimer" class="delete-button">
+                        </form>
+                        <form method="post" style="display: inline;">
+                            <input type="hidden" name="form_type" value="edit_quiz">
+                            <input type="hidden" name="quiz_id" value="<?php echo $quiz['id']; ?>">
+                            <label for="title_<?php echo $quiz['id']; ?>">Titre:</label>
+                            <input type="text" id="title_<?php echo $quiz['id']; ?>" name="title" value="<?php echo htmlspecialchars($quiz['title']); ?>" required>
+                            <label for="cover_image_<?php echo $quiz['id']; ?>">Image de couverture (URL):</label>
+                            <input type="text" id="cover_image_<?php echo $quiz['id']; ?>" name="cover_image" value="<?php echo htmlspecialchars($quiz['cover_image']); ?>">
+                            <input type="submit" value="Modifier le titre" class="edit-button">
                         </form>
                         <?php if (!empty($quiz['cover_image'])): ?>
                             <img src="<?php echo htmlspecialchars($quiz['cover_image']); ?>" alt="<?php echo htmlspecialchars($quiz['title']); ?>">
@@ -509,7 +754,7 @@ if ($selected_quiz_id) {
             <?php endforeach; ?>
         </ul>
 
-        <?php if ($selected_quiz_id && array_search($selected_quiz_id, array_column($user_quizzes, 'id')) !== false): ?>
+        <?php if ($selected_quiz_id && is_owner($selected_quiz_id, $user_id, $conn)): ?>
             <h2>Ajouter une Question à <?php echo htmlspecialchars($user_quizzes[array_search($selected_quiz_id, array_column($user_quizzes, 'id'))]['title'] ?? ''); ?></h2>
             <form method="post">
                 <input type="hidden" name="form_type" value="add_question">
@@ -546,22 +791,49 @@ if ($selected_quiz_id) {
         <?php if ($selected_quiz_id): ?>
             <h2>Questions et Réponses pour 
             <?php 
-                $quizIndex = array_search($selected_quiz_id, array_column($user_quizzes, 'id'));
-                echo htmlspecialchars($quizIndex !== false ? $user_quizzes[$quizIndex]['title'] : '');
+                $quizIndex = array_search($selected_quiz_id, array_column($quizzes, 'id'));
+                echo htmlspecialchars($quizIndex !== false ? $quizzes[$quizIndex]['title'] : '');
             ?></h2>
             <ul>
                 <?php foreach ($questions as $question): ?>
                     <li>
                         <strong><?php echo htmlspecialchars($question['question_text']); ?></strong>
                         <ul>
-                            <?php foreach ($answers as $answer): ?>
-                                <?php if ($answer['question_id'] == $question['id']): ?>
-                                    <li class="<?php echo $answer['is_correct'] ? 'correct-answer' : ''; ?>">
-                                        <?php echo htmlspecialchars($answer['answer_text']); ?>
-                                    </li>
-                                <?php endif; ?>
+                            <?php 
+                            $question_answers = array_filter($answers, function($answer) use ($question) {
+                                return $answer['question_id'] == $question['id'];
+                            });
+                            ?>
+
+                            <?php foreach ($question_answers as $answer): ?>
+                                <li class="<?php echo $answer['is_correct'] ? 'correct-answer' : ''; ?>">
+                                    <?php echo htmlspecialchars($answer['answer_text']); ?>
+                                </li>
                             <?php endforeach; ?>
                         </ul>
+                        <?php if ($question['user_id'] == $user_id): ?>
+                            <form method="post">
+                                <input type="hidden" name="form_type" value="edit_question">
+                                <input type="hidden" name="question_id" value="<?php echo $question['id']; ?>">
+                                <label for="question_text_<?php echo $question['id']; ?>">Question:</label>
+                                <textarea id="question_text_<?php echo $question['id']; ?>" name="question_text" rows="4" cols="50" required><?php echo htmlspecialchars($question['question_text']); ?></textarea><br>
+
+                                <?php foreach ($question_answers as $index => $answer): ?>
+                                    <label for="answer_<?php echo $answer['id']; ?>">Réponse <?php echo $index + 1; ?>:</label>
+                                    <input type="text" id="answer_<?php echo $answer['id']; ?>" name="answers[<?php echo $index; ?>][text]" value="<?php echo htmlspecialchars($answer['answer_text']); ?>" required><br>
+                                    <input type="hidden" name="answers[<?php echo $index; ?>][id]" value="<?php echo $answer['id']; ?>">
+                                <?php endforeach; ?>
+
+                                <label for="correct_answer_<?php echo $question['id']; ?>">Réponse Correcte:</label>
+                                <select id="correct_answer_<?php echo $question['id']; ?>" name="correct_answer" required>
+                                    <?php foreach ($question_answers as $index => $answer): ?>
+                                        <option value="<?php echo $index + 1; ?>" <?php echo $answer['is_correct'] ? 'selected' : ''; ?>>Réponse <?php echo $index + 1; ?></option>
+                                    <?php endforeach; ?>
+                                </select><br>
+
+                                <input type="submit" value="Modifier">
+                            </form>
+                        <?php endif; ?>
                     </li>
                 <?php endforeach; ?>
             </ul>
@@ -574,5 +846,6 @@ if ($selected_quiz_id) {
         <p>&copy; 2024 Quiz Night. Tous droits réservés.</p>
     </div>
 </footer>
+
 </body>
 </html>

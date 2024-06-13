@@ -171,7 +171,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             position: relative;
             z-index: 1; /* Assurez-vous que le formulaire est au-dessus du cercle néon */
             text-align: center;
-            background-color: black;
+            background-color: #060A19;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);

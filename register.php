@@ -384,7 +384,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <body>
 <div id="app">
         <div id="hero">
-            <h1>NEON<br />EFFECT</h1>
         </div>
     </div>
     <header>

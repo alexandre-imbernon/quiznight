@@ -115,7 +115,22 @@ foreach ($quiz_questions_answers as $qa) {
             font-family: 'Neon', sans-serif;
         }
 
-        .buttons button::before {
+        .quiz button {
+            background-color: #19aeff;
+            color: black;
+            border: 2px solid #fff;
+            border-radius: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 0;
+            font-family: 'Neon', sans-serif;
+        }
+
+        .buttons button::before, .quiz button::before {
             content: '';
             position: absolute;
             top: 0;
@@ -129,11 +144,11 @@ foreach ($quiz_questions_answers as $qa) {
             z-index: -1;
         }
 
-        .buttons button:hover::before {
+        .buttons button:hover::before, .quiz button:hover::before {
             opacity: 1;
         }
 
-        .buttons button:hover {
+        .buttons button:hover, .quiz button:hover {
             color: #000;
             background-color: #0ff;
             box-shadow: 0 0 20px #0ff, 0 0 40px #0ff, 0 0 60px #0ff, 0 0 80px #0ff;
@@ -142,30 +157,36 @@ foreach ($quiz_questions_answers as $qa) {
 
         h1 {
             text-align: center;
-            font-size: 2rem;
+            font-size: 2.5rem;
+            color: rgba(0, 0, 0, 0.7);
         }
 
         .quiz-container {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
+            gap: 50px;
             width: 90%;
             max-width: 1200px;
             margin: 20px auto;
-            box-sizing: border-box; /* Assure que padding et margin sont inclus dans la taille totale */
+            box-sizing: border-box;
         }
 
         .quiz {
-            background: #FFF;
+            background: rgba(0, 0, 0, 0.7);
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
         .quiz h3 {
             margin: 0 0 10px 0;
             font-size: 24px; /* Augmenter la taille de la police pour le titre */
+            color: white;
         }
 
         .quiz img {
@@ -179,21 +200,93 @@ foreach ($quiz_questions_answers as $qa) {
         .quiz ul {
             list-style-type: none;
             padding: 0;
-        }
-
-        .quiz ul ul {
-            padding-left: 20px;
+            width: 100%;
+            color: white;
         }
 
         .quiz ul li {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
             font-size: 18px;
             margin-bottom: 10px;
+        }
+
+        .quiz ul li ul {
+            padding-left: 0;
+            margin-top: 10px;
+        }
+
+        .quiz ul li ul li {
+            display: block;
+            width: auto;
+            margin-bottom: 5px;
+        }
+
+        .correct-answer {
+            color: #00FF00; /* Vert néon pour la bonne réponse */
+            font-weight: bold;
+            background-color: rgba(0, 255, 0, 0.1); /* Légère couleur de fond verte */
+            padding: 5px;
+            border-radius: 5px;
+            text-shadow: 0 0 5px #00FF00, 0 0 10px #00FF00, 0 0 15px #00FF00, 0 0 20px #00FF00, 0 0 25px #00FF00, 0 0 30px #00FF00, 0 0 35px #00FF00;
+        }
+
+        /* Effet néon bleu foncé */
+        .neon-blue {
+            border: 2px solid #227AFF;
+            animation: neon-border-blue 1.5s infinite alternate;
+        }
+
+        @keyframes neon-border-blue {
+            0% {
+                box-shadow: 0 0 10px #227AFF, 0 0 20px #227AFF, 0 0 30px #227AFF, 0 0 40px #227AFF;
+            }
+            25% {
+                box-shadow: 0 0 20px #227AFF, 0 0 30px #227AFF, 0 0 40px #227AFF, 0 0 50px #227AFF;
+            }
+            50% {
+                box-shadow: 0 0 10px #227AFF, 0 0 20px #227AFF, 0 0 30px #227AFF, 0 0 40px #227AFF;
+            }
+            75% {
+                box-shadow: 0 0 20px #227AFF, 0 0 30px #227AFF, 0 0 40px #227AFF, 0 0 50px #227AFF;
+            }
+            100% {
+                box-shadow: 0 0 30px #227AFF, 0 0 40px #227AFF, 0 0 50px #227AFF, 0 0 60px #227AFF;
+            }
+        }
+
+
+        /* Effet néon rose */
+        .neon-pink {
+            border: 2px solid #FF00FF;
+            animation: neon-border-pink 1.5s infinite alternate;
+        }
+
+        @keyframes neon-border-pink {
+            0% {
+                box-shadow: 0 0 10px #FF00FF, 0 0 20px #FF00FF, 0 0 30px #FF00FF, 0 0 40px #FF00FF;
+            }
+            25% {
+                box-shadow: 0 0 20px #FF00FF, 0 0 30px #FF00FF, 0 0 40px #FF00FF, 0 0 50px #FF00FF;
+            }
+            50% {
+                box-shadow: 0 0 10px #FF00FF, 0 0 20px #FF00FF, 0 0 30px #FF00FF, 0 0 40px #FF00FF;
+            }
+            75% {
+                box-shadow: 0 0 20px #FF00FF, 0 0 30px #FF00FF, 0 0 40px #FF00FF, 0 0 50px #FF00FF;
+            }
+            100% {
+                box-shadow: 0 0 30px #FF00FF, 0 0 40px #FF00FF, 0 0 50px #FF00FF, 0 0 60px #FF00FF;
+            }
         }
 
         /* Media Queries pour rendre le design responsive */
         @media (max-width: 992px) {
             .quiz-container {
                 grid-template-columns: repeat(2, 1fr);
+                gap: 30px; /* Ajustement de l'espacement pour les écrans moyens */
             }
 
             .header {
@@ -218,6 +311,7 @@ foreach ($quiz_questions_answers as $qa) {
         @media (max-width: 600px) {
             .quiz-container {
                 grid-template-columns: 1fr;
+                gap: 20px; /* Ajustement de l'espacement pour les petits écrans */
             }
 
             .header {
@@ -247,6 +341,15 @@ foreach ($quiz_questions_answers as $qa) {
         function redirectTo(url) {
             window.location.href = url;
         }
+
+        function showCorrectAnswers(quizId) {
+            var correctAnswers = document.querySelectorAll('.quiz[data-quiz-id="' + quizId + '"] .answer');
+            correctAnswers.forEach(function(answer) {
+                if (answer.dataset.correct === '1') {
+                    answer.classList.add('correct-answer');
+                }
+            });
+        }
     </script>
 </head>
 <body>
@@ -267,29 +370,32 @@ foreach ($quiz_questions_answers as $qa) {
     <section>
         <h1>Quiz Index</h1>
         <div class="quiz-container">
-            <?php foreach ($quizzes_data as $quiz_id => $quiz): ?>
-                <div class="quiz">
+            <?php 
+            $counter = 0; 
+            foreach ($quizzes_data as $quiz_id => $quiz): 
+                $neon_class = ($counter % 2 == 0) ? 'neon-blue' : 'neon-pink';
+                $counter++;
+            ?>
+                <div class="quiz <?php echo $neon_class; ?>" data-quiz-id="<?php echo htmlspecialchars($quiz_id); ?>">
                     <h3><?php echo htmlspecialchars($quiz['title']); ?></h3>
                     <?php if (!empty($quiz['cover_image'])): ?>
                         <img src="<?php echo htmlspecialchars($quiz['cover_image']); ?>" alt="<?php echo htmlspecialchars($quiz['title']); ?>">
                     <?php endif; ?>
                     <ul>
-                        <?php foreach ($quiz['questions'] as $question): ?>
+                        <?php foreach ($quiz['questions'] as $question_id => $question): ?>
                             <li>
-                                <strong><?php echo htmlspecialchars($question['question_text']); ?></strong><br>
+                                <strong><?php echo htmlspecialchars($question['question_text']); ?></strong>
                                 <ul>
                                     <?php foreach ($question['answers'] as $answer): ?>
-                                        <li>
+                                        <li class="answer" data-correct="<?php echo $answer['is_correct'] ? '1' : '0'; ?>">
                                             <?php echo htmlspecialchars($answer['answer_text']); ?>
-                                            <?php if ($answer['is_correct']): ?>
-                                                (Correct)
-                                            <?php endif; ?>
                                         </li>
                                     <?php endforeach; ?>
                                 </ul>
                             </li>
                         <?php endforeach; ?>
                     </ul>
+                    <button onclick="showCorrectAnswers(<?php echo htmlspecialchars($quiz_id); ?>)">Afficher les bonnes réponses</button>
                 </div>
             <?php endforeach; ?>
         </div>
