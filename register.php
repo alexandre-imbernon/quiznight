@@ -5,14 +5,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $_POST['username'];
     $password = password_hash($_POST['password'], PASSWORD_BCRYPT); // Hacher le mot de passe
 
-    $stmt = $conn->prepare("INSERT INTO users (username, password) VALUES (:username, :password)");
+    // Vérifier si le nom d'utilisateur existe déjà
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM users WHERE username = :username");
     $stmt->bindParam(':username', $username);
-    $stmt->bindParam(':password', $password);
-    
-    if ($stmt->execute()) {
-        echo "Registration successful!";
+    $stmt->execute();
+    $count = $stmt->fetchColumn();
+
+    if ($count > 0) {
+        echo "<p class='error-message'>Le nom d'utilisateur existe déjà. Veuillez en choisir un autre.</p>";
     } else {
-        echo "Error: " . $stmt->errorInfo()[2];
+        // Insérer le nouvel utilisateur
+        $stmt = $conn->prepare("INSERT INTO users (username, password) VALUES (:username, :password)");
+        $stmt->bindParam(':username', $username);
+        $stmt->bindParam(':password', $password);
+
+        if ($stmt->execute()) {
+            // Redirection vers la page de login après inscription réussie
+            header("Location: login.php");
+            exit(); // Assurez-vous d'arrêter l'exécution du script après la redirection
+        } else {
+            echo "Error: " . $stmt->errorInfo()[2];
+        }
     }
 }
 ?>
@@ -270,6 +283,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         .remember-forgot a:hover {
             text-decoration: underline;
+        }
+
+        .success-message {
+            color: white;
         }
 
         /* Media Queries pour rendre le design responsive */
