@@ -393,7 +393,7 @@ if ($selected_quiz_id) {
 
         .logout-button:hover {
             color: #000;
-            background-color: #f00; /* Neon red */
+            background-color: #f00;
             box-shadow: 0 0 20px #f00, 0 0 40px #f00, 0 0 60px #f00, 0 0 80px #f00;
             border-color: #f00;
         }

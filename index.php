@@ -169,6 +169,7 @@ foreach ($quiz_questions_answers as $qa) {
             max-width: 1200px;
             margin: 20px auto;
             box-sizing: border-box;
+            margin-bottom: 50px; /* Ajout de la marge en bas pour espacer les cartes du footer */
         }
 
         .quiz {
@@ -210,7 +211,7 @@ foreach ($quiz_questions_answers as $qa) {
             align-items: center;
             text-align: center;
             font-size: 18px;
-            margin-bottom: 10px;
+            margin-bottom: 20px; /* Augmenter la marge entre les questions */
         }
 
         .quiz ul li ul {
@@ -221,7 +222,7 @@ foreach ($quiz_questions_answers as $qa) {
         .quiz ul li ul li {
             display: block;
             width: auto;
-            margin-bottom: 5px;
+            margin-bottom: 10px; /* Augmenter la marge entre les réponses */
         }
 
         .separator {
@@ -245,6 +246,7 @@ foreach ($quiz_questions_answers as $qa) {
         .neon-blue {
             border: 2px solid #227AFF;
             animation: neon-border-blue 1.5s infinite alternate;
+            transition: transform 0.3s ease, box-shadow 0.3s ease; /* Ajout de la transition */
         }
 
         @keyframes neon-border-blue {
@@ -265,11 +267,16 @@ foreach ($quiz_questions_answers as $qa) {
             }
         }
 
+        .neon-blue:hover {
+            transform: scale(1.05); /* Ajout de l'effet d'agrandissement au survol */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Ajout d'un effet d'ombre */
+        }
 
         /* Effet néon rose */
         .neon-pink {
             border: 2px solid #FF00FF;
             animation: neon-border-pink 1.5s infinite alternate;
+            transition: transform 0.3s ease, box-shadow 0.3s ease; /* Ajout de la transition */
         }
 
         @keyframes neon-border-pink {
@@ -289,6 +296,12 @@ foreach ($quiz_questions_answers as $qa) {
                 box-shadow: 0 0 30px #FF00FF, 0 0 40px #FF00FF, 0 0 50px #FF00FF, 0 0 60px #FF00FF;
             }
         }
+
+        .neon-pink:hover {
+            transform: scale(1.05); /* Ajout de l'effet d'agrandissement au survol */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Ajout d'un effet d'ombre */
+        }
+
 
         /* Media Queries pour rendre le design responsive */
         @media (max-width: 992px) {
